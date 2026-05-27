@@ -573,8 +573,8 @@ class PowerTodoistCard extends LitElement {
         try { emphasis = actions.find(a => typeof a === 'object' && a.hasOwnProperty('emphasis')).emphasis || []; } catch (error) { }
         try { paint = actions.find(a => typeof a === 'object' && a.hasOwnProperty('paint')).paint || []; } catch (error) { }
         //const strLabels = JSON.stringify(item.labels); // moved to Parse, delete when not needed
-        let initialLabels = [...item.labels];
-        let labels = item.labels;
+        let initialLabels = [...(item._todoistLabels || item.labels)];
+        let labels = [...initialLabels];
         if (labelChanges.includes("!*")) labels = []; // use !* to clear all
         if (labelChanges.includes("!_")) labels = // use !_ to clear all labels starting with _
             labels.filter(function (label) { return label[0] !== '_'; });
@@ -918,6 +918,28 @@ class PowerTodoistCard extends LitElement {
     // -----------------------------------------------------------------------------------------------------------------------
     // -----------------------------------------------------------------------------------------------------------------------
 
+    applyAssigneeLabels(items) {
+        if (!this.myConfig.assignee_labels) return items;
+
+        return items.map(item => {
+            if (item.responsible_uid == null) return item;
+
+            const assigneeLabel = this.myConfig.assignee_labels[item.responsible_uid];
+            if (typeof assigneeLabel !== "string" || !assigneeLabel.length) return item;
+
+            const todoistLabels = item.labels || [];
+            const labels = todoistLabels.includes(assigneeLabel)
+                ? [...todoistLabels]
+                : [...todoistLabels, assigneeLabel];
+
+            return {
+                ...item,
+                _todoistLabels: [...todoistLabels],
+                labels: labels,
+            };
+        });
+    }
+
     filterDates(items) {
         if ((typeof this.myConfig.sort_by_due_date !== 'undefined') && (this.myConfig.sort_by_due_date !== false)) {
             items.sort((a, b) => {
@@ -1170,6 +1192,7 @@ class PowerTodoistCard extends LitElement {
             return { name, color: color || "" };
         });
         let items = state.attributes.tasks || []; //changed from .items to .tasks
+        items = this.applyAssigneeLabels(items);
 
         items = this.filterDates(items);
         items = this.filterPriority(items);

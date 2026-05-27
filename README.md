@@ -151,6 +151,7 @@ Spaces and hyphens turned into `_`, and everything became lowercase. In case of 
 | `filter_section_id`     | `integer` | `(none)`      | Only show tasks from one Todoist section, identified by its id.    |
 | `filter_section`        | `string` | `(none)`      | Only show tasks from one Todoist section, identified by its name. 🆕 Use `!*` to filter for items with no section. |
 | `filter_labels`         | `list` | `(none)`      | Only show tasks with the specified Todoist labels. See **Filtering by Labels** below for details on this powerful option.    |
+| `assignee_labels`       | `object` | `(none)`      | Maps Todoist `responsible_uid` values to virtual item labels, allowing assignees to participate in the existing label filters and status logic. See **Labels from Assignees** below. |
 | `filter_show_dates_starting`<br>`filter_show_dates_ending` | `integer` or `string` | `(none)`      | Only show tasks with the specified dates window. See **Filtering by Dates** below for details.    |
 | `filter_show_dates_empty` | `boolean` | `true`      | Defines whether tasks without any specified date pass the filter or not. See **Filtering by Dates** below for details.    |
 | `date_format` | `string` | `dd-mmm HHhmm ` | Defines date format. This affects two things: how item dates are displayed and how date variables are substituted. <br>Complete formatting options are documented [here](https://blog.stevenlevithan.com/archives/javascript-date-format). |
@@ -185,6 +186,20 @@ The `filter_labels` option allows for several possibilities.
 | `filter_labels:`<br>`  - "For%user%"`    | Shows items that have a label composed of the letters `For` and the current user name. For example, if user is called `Joe` then a label `ForJoe` would match. |
 
 When you filter by a single label, that label won't appear graphically under each item; instead, it will appear on the top, next to the list name.
+
+#### Labels from Assignees
+
+Use `assignee_labels` to present task assignees as labels without creating or changing labels in Todoist. The keys are Todoist user IDs from the task `responsible_uid` field and the values are labels to add within the card:
+
+```yaml
+assignee_labels:
+  "1234567": "Casey"
+  "7654321": "Alex"
+filter_labels:
+  - "Casey"
+```
+
+Mapped labels work with `filter_labels`, `status_from_labels`, `extra_labels`, label display, and matching actions. These labels are virtual and are never sent back to Todoist by label or update actions. If a matching label exists in Todoist, its configured color is used when displaying the virtual label.
 
 ## Filtering by Dates
 
