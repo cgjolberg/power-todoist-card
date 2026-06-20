@@ -19,6 +19,14 @@ root **autonomy policy**: commit with a reviewed diff, then push to GitHub and d
 to complete the task — no separate approval; review via git history. No history rewriting
 without an explicit instruction. See [`OVERVIEW.md`](OVERVIEW.md).
 
+## Working plan: read PLAN.md first, keep it updated
+[`PLAN.md`](PLAN.md) is the persistent record of what we're doing in this repo — current
+focus, next steps, open questions, decisions, and a dated log. **Read it at the start of any
+work here** (the workspace `SessionStart` hook also auto-prints its *Current focus* + *Next
+steps*). **Update it as part of every change, in the same commit** as the work: keep *Current
+focus* honest, move finished items out of *Next steps*, and append to the *Log*. This is how
+we avoid losing track when we bounce between projects.
+
 ## Standing rule: keep docs current without being asked
 On any change that affects deploy, push/credentials, the secrets handling, or card behavior,
 update [`OVERVIEW.md`](OVERVIEW.md) (and bump its `> Snapshot:` date) in the **same commit** —
