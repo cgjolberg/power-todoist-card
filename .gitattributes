@@ -1,0 +1,21 @@
+# LF line endings for everything destined for Home Assistant.
+# Follows the workspace convention (mirrors detailed-weather-forecast/.gitattributes).
+* text=auto eol=lf
+
+# Explicit source types
+*.ts   text eol=lf
+*.js   text eol=lf
+*.json text eol=lf
+*.md   text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+*.css  text eol=lf
+*.html text eol=lf
+
+# Binary files — no line-ending conversion
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.zip binary
+*.mp4 binary
