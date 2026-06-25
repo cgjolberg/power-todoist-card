@@ -152,6 +152,10 @@ Spaces and hyphens turned into `_`, and everything became lowercase. In case of 
 | `filter_section`        | `string` | `(none)`      | Only show tasks from one Todoist section, identified by its name. 🆕 Use `!*` to filter for items with no section. |
 | `filter_labels`         | `list` | `(none)`      | Only show tasks with the specified Todoist labels. See **Filtering by Labels** below for details on this powerful option.    |
 | `assignee_labels`       | `object` | `(none)`      | Maps Todoist `responsible_uid` values to virtual item labels, allowing assignees to participate in the existing label filters and status logic. See **Labels from Assignees** below. |
+| `group_by`              | `string` | `(none)`      | 🆕 Split the list into sub-sections, each with its own header. Currently the only value is `assignee`, which groups items by who they're assigned to (via `assignee_labels`). See **Grouping by Assignee** below. |
+| `group_order`           | `list`   | `(derived)`   | 🆕 Explicit order of the group headers when `group_by` is set. Defaults to the order assignees appear in `assignee_labels`, followed by the unassigned group last. |
+| `group_unassigned_label`| `string` | `Unassigned`  | 🆕 Header text for the group holding tasks with no (or unmapped) assignee, when `group_by: assignee`. |
+| `hide_empty_groups`     | `boolean`| `true`        | 🆕 When `group_by` is set, hides a group's header if it currently has no tasks. Set to `false` to always show every group header. |
 | `filter_show_dates_starting`<br>`filter_show_dates_ending` | `integer` or `string` | `(none)`      | Only show tasks with the specified dates window. See **Filtering by Dates** below for details.    |
 | `filter_show_dates_empty` | `boolean` | `true`      | Defines whether tasks without any specified date pass the filter or not. See **Filtering by Dates** below for details.    |
 | `date_format` | `string` | `dd-mmm HHhmm ` | Defines date format. This affects two things: how item dates are displayed and how date variables are substituted. <br>Complete formatting options are documented [here](https://blog.stevenlevithan.com/archives/javascript-date-format). |
@@ -200,6 +204,34 @@ filter_labels:
 ```
 
 Mapped labels work with `filter_labels`, `status_from_labels`, `extra_labels`, label display, and matching actions. These labels are virtual and are never sent back to Todoist by label or update actions. If a matching label exists in Todoist, its configured color is used when displaying the virtual label.
+
+#### Grouping by Assignee
+
+Set `group_by: assignee` to split a single card's task list into sub-sections, one per
+assignee, each introduced by a header. Tasks with no assignee (or an assignee not listed
+in `assignee_labels`) collect under an **Unassigned** group. This keeps everything in one
+card — one header, one add-task input — instead of needing a separate card per person.
+
+```yaml
+type: custom:powertodoist-card
+entity: sensor.todoist_family_tasks
+assignee_labels:
+  "1234567": "Casey"
+  "7654321": "Jordan"
+group_by: assignee
+```
+
+Grouping runs *after* all filtering and sorting (`filter_labels`, `filter_show_dates_*`,
+`sort_by_due_date`, …), so each group is the per-assignee slice of whatever the card would
+otherwise show. Notes:
+
+- **Order:** groups follow `group_order` if you set it; otherwise they follow the order
+  assignees appear in `assignee_labels`, with the unassigned group last.
+- **Empty groups** are hidden by default — set `hide_empty_groups: false` to always show
+  every header. Rename the catch-all with `group_unassigned_label`.
+- The assignee's own label chip is **not** repeated under each task while grouping (the
+  group header already names them); other labels still show.
+- Recently-completed tasks (`show_completed`) are listed once at the bottom, not grouped.
 
 ## Filtering by Dates
 

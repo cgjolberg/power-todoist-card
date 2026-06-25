@@ -11,7 +11,8 @@
 > prints, so they are the at-a-glance "where were we" — prune stale lines aggressively.
 
 ## Current focus
-_Idle._ Repo clean, on `main`, in sync with `origin/main` (2026-06-20). No active task.
+_Idle._ Just added `group_by: assignee` (per-assignee sub-sections in one card) for the
+kitchen Family Tasks card (2026-06-25). No active task.
 
 ## Next steps
 - [ ] (none yet)
@@ -20,7 +21,20 @@ _Idle._ Repo clean, on `main`, in sync with `origin/main` (2026-06-20). No activ
 - (none)
 
 ## Decisions & context worth keeping
-- (none yet — record non-obvious choices here so a future session doesn't re-derive them)
+- **Grouping is render-time only.** `group_by: assignee` buckets the *already
+  filtered/sorted* items in `render()` via `groupItemsByAssignee()`, then reuses the
+  extracted `renderItem()` per group. It does not touch filtering/sorting, so it composes
+  with `filter_*`/`sort_by_due_date`. Assignee → group via `assignee_labels`; none/unmapped
+  → "Unassigned". The per-item template lives in `renderItem()` now (extracted from the old
+  inline `items.map`), so edit it there.
+- **`filter_labels` can't express "unassigned".** The filter requires a positive include
+  match (`(excludes===0) && (includes>0)`) and `!*` ("no labels") is mis-routed to the
+  exclude branch, so a one-card-per-person split would silently drop unlabeled+unassigned
+  tasks. That's why grouping is a native feature rather than three filtered cards.
 
 ## Log
+- 2026-06-25 — Added `group_by: assignee` + `group_order` / `group_unassigned_label` /
+  `hide_empty_groups`. Extracted the per-item template into `renderItem()`; added
+  `groupItemsByAssignee()` and a `.powertodoist-group-header` style; suppress the assignee's
+  own chip under its group header. Documented in README (*Grouping by Assignee*) + OVERVIEW.
 - 2026-06-20 — PLAN.md created (workspace-wide plan-tracking convention added).

@@ -1253,8 +1253,25 @@ class PowerTodoistCard extends LitElement {
             <div class="left-accentpgr"></div>
                 <div class="powertodoist-list">
                 ${items.length
-                ? items.map(item => {
-                    return html`<div class="powertodoist-item" .id=${"item_" + item.id}>
+                ? (this.myConfig.group_by === 'assignee'
+                    ? this.groupItemsByAssignee(items).map(group => html`
+                        <div class="powertodoist-group-header">${group.label}</div>
+                        ${group.items.map(item => this.renderItem(item, icons, label_colors, cardLabels))}`)
+                    : items.map(item => this.renderItem(item, icons, label_colors, cardLabels)))
+                : html`<div class="powertodoist-list-empty">No uncompleted tasks!</div>`}
+                ${this.renderLowerPart(icons)}
+                </div>
+            </div>
+            ${this.config.markdown_bottom_content ? html`<div class="bottom-markdown" .innerHTML=${bottomMarkdown}></div>` : ''}
+            ${this.renderFooter()}
+            </ha-card>`;
+        return rendered;
+    }
+
+    // Renders a single task row. Extracted from render() so it can be reused both
+    // for the flat list and for the per-group lists when group_by is active.
+    renderItem(item, icons, label_colors, cardLabels) {
+        return html`<div class="powertodoist-item" .id=${"item_" + item.id}>
                             ${(this.myConfig.show_item_close === undefined) || (this.myConfig.show_item_close !== false)
                             ? html`<ha-icon-button
                                     class="powertodoist-item-close"
@@ -1280,7 +1297,6 @@ class PowerTodoistCard extends LitElement {
                             ><span class="powertodoist-item-content ${(this.itemsEmphasized[item.id]) ? css`powertodoist-special` : css``}" >
                             ${item.content}</span></div>
                             ${(this.myConfig.show_item_description ?? true) && item.description?.trim()
-    //                      ${((this.myConfig.show_item_description === undefined) || (this.myConfig.show_item_description !== false)) && item.description
                             ? html`<div
                                     @pointerdown=${(e) => this._lpStart(item, "longpress_description")}
                                     @pointerup=${(e) => this._lpEnd(item, "description", "dbl_description")}
@@ -1294,10 +1310,12 @@ class PowerTodoistCard extends LitElement {
                                     ? this.formatDueDate(item.due.date, this.config.date_format)
                                     : [],
                                 [...item.labels].filter(String),
-                                // [this.myConfig.show_dates && item.due ? dateFormat(item.due.date, "🗓 dd-mmm H'h'MM") :
-                                // [], ...item.labels].filter(String), // filter removes the empty []s
                                 // exclusions:
                                 [...(cardLabels.length == 1 ? cardLabels : []), // card labels excluded unless more than one
+                                // when grouping by assignee, the group header already names the
+                                // assignee, so don't repeat it as a per-item chip:
+                                ...((this.myConfig.group_by === 'assignee' && item.responsible_uid != null && this.myConfig.assignee_labels?.[item.responsible_uid])
+                                    ? [this.myConfig.assignee_labels[item.responsible_uid]] : []),
                                 ...item.labels.filter(l => l.startsWith("_"))], // "_etc" labels excluded
                                 label_colors)}
                         </div>
@@ -1316,15 +1334,43 @@ class PowerTodoistCard extends LitElement {
                             : html``}
                         </div>
                     </div>`;
-                })
-                : html`<div class="powertodoist-list-empty">No uncompleted tasks!</div>`}
-                ${this.renderLowerPart(icons)}
-                </div>
-            </div>
-            ${this.config.markdown_bottom_content ? html`<div class="bottom-markdown" .innerHTML=${bottomMarkdown}></div>` : ''}
-            ${this.renderFooter()}
-            </ha-card>`;
-        return rendered;
+    }
+
+    // Buckets the (already filtered/sorted) items by assignee for group_by: assignee.
+    // Groups are keyed by the label from assignee_labels (responsible_uid -> label);
+    // tasks with no/unmapped assignee fall into the "Unassigned" group. Returns an
+    // ordered [{ label, items }] list. Order follows group_order if given, else the
+    // order assignees appear in assignee_labels, with Unassigned last. Empty groups
+    // are dropped unless hide_empty_groups: false.
+    groupItemsByAssignee(items) {
+        const map = this.myConfig.assignee_labels || {};
+        const unassignedLabel = this.myConfig.group_unassigned_label || "Unassigned";
+
+        let order = this.myConfig.group_order;
+        if (!Array.isArray(order) || !order.length) {
+            order = [...new Set(Object.values(map).filter(v => typeof v === "string" && v.length))];
+            order.push(unassignedLabel);
+        }
+
+        const buckets = new Map();
+        order.forEach(g => buckets.set(g, []));
+        items.forEach(item => {
+            const uid = item.responsible_uid;
+            const g = (uid != null && map[uid]) ? map[uid] : unassignedLabel;
+            if (!buckets.has(g)) buckets.set(g, []);
+            buckets.get(g).push(item);
+        });
+
+        // Ordered groups first, then any assignees not listed in `order`.
+        let result = order.map(g => ({ label: g, items: buckets.get(g) || [] }));
+        for (const [g, arr] of buckets) {
+            if (!order.includes(g)) result.push({ label: g, items: arr });
+        }
+
+        if (this.myConfig.hide_empty_groups !== false) {
+            result = result.filter(g => g.items.length > 0);
+        }
+        return result;
     }
 
     generateStyles() {
@@ -1528,7 +1574,22 @@ class PowerTodoistCard extends LitElement {
                 text-align: center;
                 font-size: 24px;
             }
-           
+
+            /* Sub-header shown above each assignee group when group_by: assignee */
+            .powertodoist-group-header {
+                font-size: 15px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                opacity: 0.7;
+                margin: 14px 0 4px;
+                padding-bottom: 3px;
+                border-bottom: 1px solid var(--divider-color, rgba(127,127,127,0.3));
+            }
+            .powertodoist-group-header:first-child {
+                margin-top: 0;
+            }
+
             .powertodoist-item {
                 display: flex;
                 flex-direction: row;

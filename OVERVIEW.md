@@ -1,6 +1,6 @@
 # power-todoist-card — Repo Overview
 
-> Snapshot: 2026-06-20. Part of the Home Assistant **file/code lane** workspace.
+> Snapshot: 2026-06-25. Part of the Home Assistant **file/code lane** workspace.
 > The root [`../CLAUDE.md`](../CLAUDE.md) is the authority on workspace-wide rules
 > (incl. the **push/deploy autonomy policy**); this file is a quick factual overview
 > of *this repo*. **Keep it current** — see *Keeping this file current* at the bottom.
@@ -55,6 +55,11 @@ task (no separate approval); review via git history.
 - Branch `main`. As of snapshot: clean working tree.
 
 ## Repo-specific notes
+- **`group_by: assignee` (added 2026-06-25).** Splits one card's list into per-assignee
+  sub-sections with headers, using `assignee_labels` (unmapped/none → "Unassigned"). Render
+  path: `render()` → `groupItemsByAssignee()` → per-group `renderItem()`. Tunables:
+  `group_order`, `group_unassigned_label`, `hide_empty_groups`. See README → *Grouping by
+  Assignee*. Used by the kitchen dashboard's Family Tasks card.
 - **Line endings — enforced.** A committed [`.gitattributes`](.gitattributes) pins
   `* text=auto eol=lf` (plus explicit source types), so the shipped `powertodoist-card.js`
   stays LF even though it's committed directly and the local `core.autocrlf=true`. No
