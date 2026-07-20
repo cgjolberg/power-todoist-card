@@ -1,6 +1,6 @@
 # power-todoist-card — Repo Overview
 
-> Snapshot: 2026-07-07. Part of the Home Assistant **file/code lane** workspace.
+> Snapshot: 2026-07-19. Part of the Home Assistant **file/code lane** workspace.
 > The root [`../CLAUDE.md`](../CLAUDE.md) is the authority on workspace-wide rules
 > (incl. the **push/deploy autonomy policy**); this file is a quick factual overview
 > of *this repo*. **Keep it current** — see *Keeping this file current* at the bottom.
@@ -60,8 +60,9 @@ per the root policy (root [`../CLAUDE.md`](../CLAUDE.md) → *Deployment*).
   Assignee*. Used by the kitchen dashboard's Family Tasks card.
 - **Line endings — enforced.** A committed [`.gitattributes`](.gitattributes) pins
   `* text=auto eol=lf` (plus explicit source types), so the shipped `powertodoist-card.js`
-  stays LF even though it's committed directly and the local `core.autocrlf=true`. No
-  `.editorconfig`. *(Added 2026-06-19, mirroring `../detailed-weather-forecast`.)*
+  stays LF regardless of the local `core.autocrlf` setting (set to `false` 2026-07-19 per the
+  workspace convention). No `.editorconfig`. *(Added 2026-06-19, mirroring
+  `../detailed-weather-forecast`.)*
 
 ## Keeping this file current
 Treat docs as part of every change here — update them in the **same commit**, not as a
